@@ -70,13 +70,13 @@ while running:
     keys = pygame.key.get_pressed()
     if not game_over:  # 게임 오버가 아닐 때만 키 입력 처리
         # 플레이어 이동 (WASD 키)
-        if keys[pygame.K_w]:
+        if keys[pygame.K_w] and player_pos[1] > player_size // 2:  # 위쪽 경계 체크
             player_pos[1] -= player_speed
-        if keys[pygame.K_s]:
+        if keys[pygame.K_s] and player_pos[1] < HEIGHT - player_size // 2:  # 아래쪽 경계 체크
             player_pos[1] += player_speed
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] and player_pos[0] > player_size // 2:  # 왼쪽 경계 체크
             player_pos[0] -= player_speed
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d] and player_pos[0] < WIDTH - player_size // 2:  # 오른쪽 경계 체크
             player_pos[0] += player_speed
         
         # 총알 발사 (방향키로 변경)
@@ -98,7 +98,7 @@ while running:
             bullet_pos, bullet_direction = bullet  # 총알 위치와 방향 분리
             bullet_pos[0] += bullet_direction[0] * bullet_speed  # 총알 이동 (x 방향)
             bullet_pos[1] += bullet_direction[1] * bullet_speed  # 총알 이동 (y 방향)
-            if bullet_pos[1] < 0:  # 화면 밖으로 나가면 제거
+            if bullet_pos[1] < 0 or bullet_pos[1] > HEIGHT or bullet_pos[0] < 0 or bullet_pos[0] > WIDTH:  # 화면 밖으로 나가면 제거
                 bullets.remove(bullet)
                 continue
 
@@ -132,15 +132,6 @@ while running:
                     game_over = True  # 게임 오버 상태로 변경
                 break  # 충돌 시 루프 종료
 
-    # 거리 계산 및 표시
-    if not game_over:
-        # 플레이어와 적의 거리 계산
-        for enemy in enemy_list:
-            distance = math.sqrt((player_pos[0] - enemy[0]) ** 2 + (player_pos[1] - enemy[1]) ** 2)
-            # 거리 표시 (예: 적의 위치 근처에 거리 표시)
-            distance_text = pygame.font.Font(None, 36).render(f"Distance: {int(distance)}", True, (0, 0, 0))
-            screen.blit(distance_text, (enemy[0] - 20, enemy[1] - 20))  # 적의 위치 위에 거리 표시
-
     # 화면 그리기
     screen.fill(WHITE)
     if game_over:  # 게임 오버 상태일 때
@@ -166,12 +157,7 @@ while running:
         pygame.draw.circle(screen, GREEN, (player_pos[0], player_pos[1]), player_size // 2)
         for enemy in enemy_list:
             pygame.draw.circle(screen, RED, (int(enemy[0]), int(enemy[1])), enemy_size // 2)
-            # 거리 계산 및 표시
-            distance = math.sqrt((player_pos[0] - enemy[0]) ** 2 + (player_pos[1] - enemy[1]) ** 2)
-            # 거리 표시 (적의 위치 위에 거리 표시)
-            distance_text = pygame.font.Font(None, 36).render(f"Distance: {int(distance)}", True, (0, 0, 0))
-            screen.blit(distance_text, (int(enemy[0]) - 20, int(enemy[1]) - 40))  # 적의 위치 위에 거리 표시
-
+            
         # 총알 그리기
         for bullet in bullets:
             pygame.draw.circle(screen, (0, 0, 255), (int(bullet[0][0]), int(bullet[0][1])), bullet_size)  # bullet[0]에서 x, y 좌표 분리
@@ -187,7 +173,7 @@ while running:
     clock.tick(FPS)
 
     # 점수 증가
-    if not game_over:  # 게임 오버가 아닐 때만 점수 증가
+    if not game_over:  # 게임 오버가 아 때만 점수 증가
         score += 1
 
 # 게임 종료
