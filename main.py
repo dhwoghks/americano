@@ -53,9 +53,9 @@ def spawn_enemy():
     enemy_list.append([x_pos, y_pos])
 
 # 총알 생성 함수
-def spawn_bullet(player_pos):
+def spawn_bullet(player_pos, direction):
     bullet_pos = [player_pos[0], player_pos[1]]
-    bullets.append(bullet_pos)
+    bullets.append((bullet_pos, direction))  # 방향도 함께 저장
 
 # 게임 루프
 running = True
@@ -78,24 +78,32 @@ while running:
             player_pos[0] -= player_speed
         if keys[pygame.K_d]:
             player_pos[0] += player_speed
-        if keys[pygame.K_UP]:
-            player_pos[1] -= player_speed
-        if keys[pygame.K_DOWN]:
-            player_pos[1] += player_speed
+        
+        # 총알 발사 (방향키로 변경)
+        direction = None
+        if keys[pygame.K_UP]:  # 위 방향키
+            direction = [0, -1]
+        elif keys[pygame.K_DOWN]:  # 아래 방향키
+            direction = [0, 1]
+        elif keys[pygame.K_LEFT]:  # 왼쪽 방향키
+            direction = [-1, 0]
+        elif keys[pygame.K_RIGHT]:  # 오른쪽 방향키
+            direction = [1, 0]
 
-        # 총알 발사
-        if keys[pygame.K_SPACE]:  # 스페이스바로 총알 발사
-            spawn_bullet(player_pos)
+        if direction:  # 방향이 설정되었을 때만 총알 발사
+            spawn_bullet(player_pos, direction)
 
         # 총알 이동 및 충돌 처리
         for bullet in bullets[:]:
-            bullet[1] -= bullet_speed  # 총알 위로 이동
-            if bullet[1] < 0:  # 화면 밖으로 나가면 제거
+            bullet_pos, bullet_direction = bullet  # 총알 위치와 방향 분리
+            bullet_pos[0] += bullet_direction[0] * bullet_speed  # 총알 이동 (x 방향)
+            bullet_pos[1] += bullet_direction[1] * bullet_speed  # 총알 이동 (y 방향)
+            if bullet_pos[1] < 0:  # 화면 밖으로 나가면 제거
                 bullets.remove(bullet)
                 continue
 
             for enemy in enemy_list[:]:
-                if detect_collision(bullet, enemy):  # 총알과 적의 충돌 판정
+                if detect_collision(bullet_pos, enemy):  # 총알의 위치를 사용하도록 수정
                     enemy_health -= 1  # 적의 체력 감소
                     bullets.remove(bullet)  # 총알 제거
                     if enemy_health <= 0:  # 적의 체력이 0 이하일 경우
@@ -166,7 +174,7 @@ while running:
 
         # 총알 그리기
         for bullet in bullets:
-            pygame.draw.circle(screen, (0, 0, 255), (int(bullet[0]), int(bullet[1])), bullet_size)
+            pygame.draw.circle(screen, (0, 0, 255), (int(bullet[0][0]), int(bullet[0][1])), bullet_size)  # bullet[0]에서 x, y 좌표 분리
 
         # 점수 표시
         score_text = pygame.font.Font(None, 36).render(f"Score: {score}", True, (0, 0, 0))
