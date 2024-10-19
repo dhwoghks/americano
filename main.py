@@ -69,9 +69,14 @@ while running:
     # 키 입력 처리
     keys = pygame.key.get_pressed()
     if not game_over:  # 게임 오버가 아닐 때만 키 입력 처리
-        if keys[pygame.K_LEFT]:
+        # 플레이어 이동 (WASD 키)
+        if keys[pygame.K_w]:
+            player_pos[1] -= player_speed
+        if keys[pygame.K_s]:
+            player_pos[1] += player_speed
+        if keys[pygame.K_a]:
             player_pos[0] -= player_speed
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_d]:
             player_pos[0] += player_speed
         if keys[pygame.K_UP]:
             player_pos[1] -= player_speed
