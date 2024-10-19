@@ -47,7 +47,18 @@ def detect_collision(player_pos, enemy_pos):
     e_x, e_y = enemy_pos
     distance = math.sqrt((p_x - e_x) ** 2 + (p_y - e_y) ** 2)
     return distance < (player_size / 2 + enemy_size / 2)
-
+def draw_heart(surface, position):
+    # 하트 모양의 좌표를 정의합니다.
+    heart_points = [
+        (position[0] + 10, position[1] + 20),  # 아래 중간
+        (position[0], position[1] + 10),       # 왼쪽 위
+        (position[0] + 5, position[1]),         # 왼쪽 위 꼭지점
+        (position[0] + 10, position[1] + 5),    # 가운데
+        (position[0] + 15, position[1]),        # 오른쪽 위 꼭지점
+        (position[0] + 20, position[1] + 10),  # 오른쪽 위
+        (position[0] + 10, position[1] + 20)   # 아래 중간
+    ]
+    pygame.draw.polygon(surface, RED, heart_points)
 # 적 생성 함수
 def spawn_enemy():
     direction = random.choice(['left', 'right', 'top', 'bottom'])  # 생성 방향 선택
@@ -166,11 +177,14 @@ while running:
             player_pos = [WIDTH // 2, HEIGHT // 2]
             enemy_list.clear()  # 적 리스트 초기화
             score = 0  # 점수 초기화
-            player_health = 5 # 체력 초기화
+            player_health = 5
+
             game_over = False  # 게임 오버 상태 초기화
         elif keys[pygame.K_q]:  # q 버튼으로 종료
             running = False  # 게임 종료
     else:
+        for i in range(player_health):
+            draw_heart(screen, (10 + i * 30, 50))  # 하트를 일정 간격으로 표시
         pygame.draw.circle(screen, GREEN, (player_pos[0], player_pos[1]), player_size // 2)
         for enemy in enemy_list:
             pygame.draw.circle(screen, RED, (int(enemy[0]), int(enemy[1])), enemy_size // 2)
