@@ -230,6 +230,9 @@ while running:
             enemy_list.clear()
             score = 0
             player_health = 5
+            initial_enemy_health = 3  # 초기 적 체력으로 리셋
+            initial_enemy_speed = 1.5  # 초기 적 스피드로 리셋
+            
             game_over = False
         elif keys[pygame.K_q]:
             running = False
