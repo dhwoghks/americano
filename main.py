@@ -6,7 +6,7 @@ import math
 pygame.init()
 
 # 화면 크기 설정
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1280, 720
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Vampire Survivors Lite")
 
@@ -41,12 +41,20 @@ score = 0
 enemy_spawn_time = 1000  # 적 생성 간격 (밀리초)
 last_enemy_spawn_time = pygame.time.get_ticks()
 
+# 스킬 설정
+skill_active = False
+skill_duration = 3000  # 스킬 지속 시간 (밀리초)
+skill_radius = 100  # 스킬 범위 (반경)
+skill_cooldown = 5000  # 스킬 쿨다운 (밀리초)
+last_skill_time = 0  # 마지막 스킬 발동 시간
+
 # 충돌 판정 함수
 def detect_collision(player_pos, enemy_pos):
     p_x, p_y = player_pos
     e_x, e_y = enemy_pos
     distance = math.sqrt((p_x - e_x) ** 2 + (p_y - e_y) ** 2)
     return distance < (player_size / 2 + enemy_size / 2)
+
 
 # 하트 그리기 함수
 def draw_heart(surface, position):
@@ -61,11 +69,28 @@ def draw_heart(surface, position):
     ]
     pygame.draw.polygon(surface, RED, heart_points)
 
+# 별 모양 그리기 함수
+def draw_star(surface, color, position, radius):
+    points = []
+    for i in range(5):
+        angle = i * (2 * math.pi / 5) - math.pi / 2
+        x = position[0] + math.cos(angle) * radius
+        y = position[1] + math.sin(angle) * radius
+        points.append((x, y))
+
+        # 안쪽 점 추가 (별의 중앙으로)
+        angle = (i + 0.5) * (2 * math.pi / 5) - math.pi / 2
+        x = position[0] + math.cos(angle) * radius * 0.5
+        y = position[1] + math.sin(angle) * radius * 0.5
+        points.append((x, y))
+
+    pygame.draw.polygon(surface, color, points)
+
 # 적 생성 함수
 def spawn_enemy():
     global initial_enemy_health, initial_enemy_speed  # 초기 적 체력과 스피드를 전역 변수로 사용
     direction = random.choice(['left', 'right', 'top', 'bottom'])
-    
+
     if direction == 'left':
         x_pos = random.randint(-enemy_size, 0)
         y_pos = random.randint(0, HEIGHT)
@@ -79,24 +104,30 @@ def spawn_enemy():
         x_pos = random.randint(0, WIDTH)
         y_pos = random.randint(HEIGHT, HEIGHT + enemy_size)
 
-    enemy_list.append({'pos': [x_pos, y_pos], 'health': initial_enemy_health, 'speed': initial_enemy_speed})  # 적의 위치, 체력, 스피드를 딕셔너리로 저장
+    enemy_list.append({'pos': [x_pos, y_pos], 'health': initial_enemy_health,
+                       'speed': initial_enemy_speed})  # 적의 위치, 체력, 스피드를 딕셔너리로 저장
+
 
 # 총알 생성 함수
 def spawn_bullet(player_pos, direction):
     bullet_pos = [player_pos[0], player_pos[1]]
     bullets.append((bullet_pos, direction))
 
-#아이템 설정
+
+# 아이템 설정
 item_size = 20
 item_list = []
 item_spawn_time = 5000  # 아이템 생성 간격 (밀리초)
 last_item_spawn_time = pygame.time.get_ticks()  # 마지막 아이템 생성 시간
 
-#아이템 생성 함수
+
+# 아이템 생성 함수
 def spawn_item():
     x_pos = random.randint(0, WIDTH - item_size)  # 아이템이 화면 경계 내에서 생성되도록 수정
     y_pos = random.randint(0, HEIGHT - item_size)  # 아이템이 화면 경계 내에서 생성되도록 수정
     item_list.append([x_pos, y_pos])  # 아이템의 위치 추가
+
+
 # 게임 루프
 running = True
 game_over = False
@@ -118,7 +149,10 @@ while running:
             player_pos[0] -= player_speed
         if keys[pygame.K_d] and player_pos[0] < WIDTH - player_size // 2:
             player_pos[0] += player_speed
-        
+        # G키로 스킬 발동
+        if keys[pygame.K_g] and current_time - last_skill_time > skill_cooldown:
+            skill_active = True
+            last_skill_time = current_time  # 마지막 스킬 발동 시간 업데이트
         # 총알 발사
         direction = None
         if keys[pygame.K_UP]:
@@ -187,6 +221,7 @@ while running:
             break
     # 화면 그리기
     screen.fill(WHITE)
+
     if game_over:
         # 게임 오버 화면
         font = pygame.font.Font(None, 74)
@@ -194,11 +229,11 @@ while running:
         screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
         score_text = pygame.font.Font(None, 36).render(f"Score: {score}", True, (0, 0, 0))
         screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, HEIGHT // 2 + 50))
-        
+
         # 재시작 및 종료 안내 문구
         restart_text = pygame.font.Font(None, 36).render("Press R to Restart or Q to Quit", True, (0, 0, 0))
         screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 100))
-        
+
         # r 또는 q 버튼 입력 처리
         if keys[pygame.K_r]:
             player_pos = [WIDTH // 2, HEIGHT // 2]
@@ -215,7 +250,7 @@ while running:
         pygame.draw.circle(screen, GREEN, (player_pos[0], player_pos[1]), player_size // 2)
         for enemy in enemy_list:
             pygame.draw.circle(screen, RED, (int(enemy['pos'][0]), int(enemy['pos'][1])), enemy_size // 2)
-        
+
         # 총알 그리기
         for bullet in bullets:
             pygame.draw.circle(screen, (0, 0, 255), (int(bullet[0][0]), int(bullet[0][1])), bullet_size)
@@ -224,8 +259,23 @@ while running:
         # 점수 표시
         score_text = pygame.font.Font(None, 36).render(f"Score: {score}", True, (0, 0, 0))
         screen.blit(score_text, (10, 10))
-    
-    
+        # 스킬이 발동 중이면 범위 그리기
+        if skill_active:
+            pygame.draw.circle(screen, (0, 0, 255), (player_pos[0], player_pos[1]), skill_radius, 2)
+            # 스킬 범위 내 적에게 데미지
+            for enemy in enemy_list[:]:
+                distance = math.sqrt((player_pos[0] - enemy['pos'][0]) ** 2 + (player_pos[1] - enemy['pos'][1]) ** 2)
+                if distance <= skill_radius + (enemy_size / 2):  # 스킬 범위 내 적에게 데미지
+                    enemy['health'] -= 1  # 적 객체의 체력을 감소시킴
+                    if enemy['health'] <= 0:
+                        enemy_list.remove(enemy)
+            # 스킬 지속 시간이 끝났으면 종료
+            if current_time - last_skill_time > skill_duration:
+                skill_active = False
+        # 스킬 쿨다운 표시
+        cooldown_remaining = max(0, skill_cooldown - (current_time - last_skill_time))
+        cooldown_text = pygame.font.Font(None, 36).render(f"Skill Cooldown: {cooldown_remaining // 1000}.{cooldown_remaining % 1000 // 100} s", True, (0, 0, 0))
+        screen.blit(cooldown_text, (WIDTH - cooldown_text.get_width() - 10, HEIGHT - cooldown_text.get_height() - 10))
     # 화면 업데이트
     pygame.display.flip()
     clock.tick(FPS)
