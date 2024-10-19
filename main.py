@@ -166,6 +166,7 @@ while running:
             player_pos = [WIDTH // 2, HEIGHT // 2]
             enemy_list.clear()  # 적 리스트 초기화
             score = 0  # 점수 초기화
+            player_health = 5 # 체력 초기화
             game_over = False  # 게임 오버 상태 초기화
         elif keys[pygame.K_q]:  # q 버튼으로 종료
             running = False  # 게임 종료
