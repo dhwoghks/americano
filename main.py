@@ -8,12 +8,13 @@ pygame.init()
 # 화면 크기 설정
 WIDTH, HEIGHT = 1280, 720
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Vampire Survivors Lite")
+pygame.display.set_caption("Circle Shooter")
 
 # 색상 정의
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 # 플레이어 설정
 player_size = 50
@@ -69,19 +70,13 @@ def draw_heart(surface, position):
     ]
     pygame.draw.polygon(surface, RED, heart_points)
 
-# 별 모양 그리기 함수
-def draw_star(surface, color, position, radius):
+# 원 모양 스킬 그리기 함수
+def draw_circle(surface, color, position, radius):
     points = []
     for i in range(5):
         angle = i * (2 * math.pi / 5) - math.pi / 2
         x = position[0] + math.cos(angle) * radius
         y = position[1] + math.sin(angle) * radius
-        points.append((x, y))
-
-        # 안쪽 점 추가 (별의 중앙으로)
-        angle = (i + 0.5) * (2 * math.pi / 5) - math.pi / 2
-        x = position[0] + math.cos(angle) * radius * 0.5
-        y = position[1] + math.sin(angle) * radius * 0.5
         points.append((x, y))
 
     pygame.draw.polygon(surface, color, points)
@@ -104,8 +99,7 @@ def spawn_enemy():
         x_pos = random.randint(0, WIDTH)
         y_pos = random.randint(HEIGHT, HEIGHT + enemy_size)
 
-    enemy_list.append({'pos': [x_pos, y_pos], 'health': initial_enemy_health,
-                       'speed': initial_enemy_speed})  # 적의 위치, 체력, 스피드를 딕셔너리로 저장
+    enemy_list.append({'pos': [x_pos, y_pos], 'health': initial_enemy_health, 'speed': initial_enemy_speed})  # 적의 위치, 체력, 스피드를 딕셔너리로 저장
 
 
 # 총알 생성 함수
@@ -208,10 +202,6 @@ while running:
     if current_time - last_item_spawn_time > item_spawn_time:
         spawn_item()
         last_item_spawn_time = current_time  # 마지막 아이템 생성 시간 업데이트
-
-    # 아이템 그리기
-    # for item in item_list:
-    #     pygame.draw.rect(screen, (0, 255, 255), (item[0], item[1], item_size, item_size))  # 아이템 표시
 
     # 플레이어와 아이템 충돌 체크
     for item in item_list[:]:
