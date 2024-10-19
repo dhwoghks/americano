@@ -24,7 +24,8 @@ player_speed = 5
 # 적 설정
 enemy_size = 30
 enemy_list = []  # 각 적의 체력을 포함한 리스트
-enemy_speed = 1.5
+initial_enemy_speed = 1.5  # 초기 적 스피드 설정
+initial_enemy_health = 3  # 초기 적 체력 설정
 
 # 총알 설정
 bullet_size = 5
@@ -62,9 +63,9 @@ def draw_heart(surface, position):
 
 # 적 생성 함수
 def spawn_enemy():
+    global initial_enemy_health, initial_enemy_speed  # 초기 적 체력과 스피드를 전역 변수로 사용
     direction = random.choice(['left', 'right', 'top', 'bottom'])
-    enemy_health = 3  # 각 적의 체력 설정
-
+    
     if direction == 'left':
         x_pos = random.randint(-enemy_size, 0)
         y_pos = random.randint(0, HEIGHT)
@@ -78,7 +79,7 @@ def spawn_enemy():
         x_pos = random.randint(0, WIDTH)
         y_pos = random.randint(HEIGHT, HEIGHT + enemy_size)
 
-    enemy_list.append({'pos': [x_pos, y_pos], 'health': enemy_health})  # 적의 위치와 체력을 딕셔너리로 저장
+    enemy_list.append({'pos': [x_pos, y_pos], 'health': initial_enemy_health, 'speed': initial_enemy_speed})  # 적의 위치, 체력, 스피드를 딕셔너리로 저장
 
 # 총알 생성 함수
 def spawn_bullet(player_pos, direction):
@@ -93,8 +94,8 @@ last_item_spawn_time = pygame.time.get_ticks()  # 마지막 아이템 생성 시
 
 #아이템 생성 함수
 def spawn_item():
-    x_pos = random.randint(0, WIDTH)
-    y_pos = random.randint(0, HEIGHT)
+    x_pos = random.randint(0, WIDTH - item_size)  # 아이템이 화면 경계 내에서 생성되도록 수정
+    y_pos = random.randint(0, HEIGHT - item_size)  # 아이템이 화면 경계 내에서 생성되도록 수정
     item_list.append([x_pos, y_pos])  # 아이템의 위치 추가
 # 게임 루프
 running = True
@@ -160,8 +161,8 @@ while running:
             direction = [player_pos[0] - enemy['pos'][0], player_pos[1] - enemy['pos'][1]]
             distance = math.sqrt(direction[0] ** 2 + direction[1] ** 2)
             direction = [direction[0] / distance, direction[1] / distance]
-            enemy['pos'][0] += direction[0] * enemy_speed
-            enemy['pos'][1] += direction[1] * enemy_speed
+            enemy['pos'][0] += direction[0] * enemy['speed']  # 각 적의 스피드를 사용
+            enemy['pos'][1] += direction[1] * enemy['speed']  # 각 적의 스피드를 사용
 
             if detect_collision(player_pos, enemy['pos']):
                 player_health -= 1
@@ -175,8 +176,8 @@ while running:
         last_item_spawn_time = current_time  # 마지막 아이템 생성 시간 업데이트
 
     # 아이템 그리기
-    for item in item_list:
-        pygame.draw.rect(screen, (0, 255, 255), (item[0], item[1], item_size, item_size))  # 아이템 표시
+    # for item in item_list:
+    #     pygame.draw.rect(screen, (0, 255, 255), (item[0], item[1], item_size, item_size))  # 아이템 표시
 
     # 플레이어와 아이템 충돌 체크
     for item in item_list[:]:
@@ -218,7 +219,8 @@ while running:
         # 총알 그리기
         for bullet in bullets:
             pygame.draw.circle(screen, (0, 0, 255), (int(bullet[0][0]), int(bullet[0][1])), bullet_size)
-
+        for item in item_list:
+            pygame.draw.rect(screen, (0, 255, 255), (item[0], item[1], item_size, item_size))  # 아이템 표시
         # 점수 표시
         score_text = pygame.font.Font(None, 36).render(f"Score: {score}", True, (0, 0, 0))
         screen.blit(score_text, (10, 10))
@@ -231,6 +233,9 @@ while running:
     # 점수 증가
     if not game_over:
         score += 1
+        if score % 1000 == 0:  # 점수가 1000의 배수일 때
+            initial_enemy_health += 1  # 다음에 생성될 적의 체력 증가
+            initial_enemy_speed += 0.5  # 다음에 생성될 적의 스피드 증가
 
 # 게임 종료
 pygame.quit()
