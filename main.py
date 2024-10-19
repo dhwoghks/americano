@@ -31,6 +31,8 @@ enemy_speed = 1.5
 bullet_size = 5
 bullet_speed = 10
 bullets = []  # 총알 리스트 추가
+bullet_cooldown = 100  # 총알 발사 쿨타임 (밀리초)
+last_bullet_time = 0  # 마지막 총알 발사 시간 초기화
 
 # 게임 변수
 clock = pygame.time.Clock()
@@ -90,8 +92,9 @@ while running:
         elif keys[pygame.K_RIGHT]:  # 오른쪽 방향키
             direction = [1, 0]
 
-        if direction:  # 방향이 설정되었을 때만 총알 발사
+        if direction and (current_time - last_bullet_time > bullet_cooldown):  # 쿨타임 체크
             spawn_bullet(player_pos, direction)
+            last_bullet_time = current_time  # 마지막 총알 발사 시간 업데이트
 
         # 총알 이동 및 충돌 처리
         for bullet in bullets[:]:
@@ -173,7 +176,7 @@ while running:
     clock.tick(FPS)
 
     # 점수 증가
-    if not game_over:  # 게임 오버가 아 때만 점수 증가
+    if not game_over:  # 게임 오버가 아닐 때만 점수 증가
         score += 1
 
 # 게임 종료
