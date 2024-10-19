@@ -85,6 +85,17 @@ def spawn_bullet(player_pos, direction):
     bullet_pos = [player_pos[0], player_pos[1]]
     bullets.append((bullet_pos, direction))
 
+#아이템 설정
+item_size = 20
+item_list = []
+item_spawn_time = 5000  # 아이템 생성 간격 (밀리초)
+last_item_spawn_time = pygame.time.get_ticks()  # 마지막 아이템 생성 시간
+
+#아이템 생성 함수
+def spawn_item():
+    x_pos = random.randint(0, WIDTH)
+    y_pos = random.randint(0, HEIGHT)
+    item_list.append([x_pos, y_pos])  # 아이템의 위치 추가
 # 게임 루프
 running = True
 game_over = False
@@ -159,6 +170,20 @@ while running:
                     game_over = True
                 break
 
+    if current_time - last_item_spawn_time > item_spawn_time:
+        spawn_item()
+        last_item_spawn_time = current_time  # 마지막 아이템 생성 시간 업데이트
+
+    # 아이템 그리기
+    for item in item_list:
+        pygame.draw.rect(screen, (0, 255, 255), (item[0], item[1], item_size, item_size))  # 아이템 표시
+
+    # 플레이어와 아이템 충돌 체크
+    for item in item_list[:]:
+        if detect_collision(player_pos, item):  # 플레이어와 아이템 충돌 체크
+            player_health += 1  # 체력 회복
+            item_list.remove(item)  # 아이템 제거
+            break
     # 화면 그리기
     screen.fill(WHITE)
     if game_over:
@@ -197,7 +222,8 @@ while running:
         # 점수 표시
         score_text = pygame.font.Font(None, 36).render(f"Score: {score}", True, (0, 0, 0))
         screen.blit(score_text, (10, 10))
-
+    
+    
     # 화면 업데이트
     pygame.display.flip()
     clock.tick(FPS)
