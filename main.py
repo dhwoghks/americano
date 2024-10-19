@@ -50,9 +50,22 @@ def detect_collision(player_pos, enemy_pos):
 
 # 적 생성 함수
 def spawn_enemy():
-    x_pos = random.randint(-enemy_size, WIDTH)  # 화면 바깥쪽 좌우에서 적의 x 위치 생성
-    y_pos = random.choice([-enemy_size, HEIGHT])  # 화면 바깥쪽 상단 또는 하단에서 적의 y 위치 생성
-    enemy_list.append([x_pos, y_pos])
+    direction = random.choice(['left', 'right', 'top', 'bottom'])  # 생성 방향 선택
+
+    if direction == 'left':
+        x_pos = random.randint(-enemy_size, 0)  # 왼쪽 바깥에서 생성
+        y_pos = random.randint(0, HEIGHT)  # y 위치는 화면 안에서 랜덤
+    elif direction == 'right':
+        x_pos = random.randint(WIDTH, WIDTH + enemy_size)  # 오른쪽 바깥에서 생성
+        y_pos = random.randint(0, HEIGHT)  # y 위치는 화면 안에서 랜덤
+    elif direction == 'top':
+        x_pos = random.randint(0, WIDTH)  # x 위치는 화면 안에서 랜덤
+        y_pos = random.randint(-enemy_size, 0)  # 위쪽 바깥에서 생성
+    else:  # direction == 'bottom'
+        x_pos = random.randint(0, WIDTH)  # x 위치는 화면 안에서 랜덤
+        y_pos = random.randint(HEIGHT, HEIGHT + enemy_size)  # 아래쪽 바깥에서 생성
+
+    enemy_list.append([x_pos, y_pos])  # 적의 위치 추가
 
 # 총알 생성 함수
 def spawn_bullet(player_pos, direction):
